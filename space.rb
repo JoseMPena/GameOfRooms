@@ -1,12 +1,14 @@
 class Space
-  attr_reader(:description, :doors)
+  attr_accessor(:description, :doors)
   def initialize(description)
     @description = description
     @doors = {}
+    @items = []
   end
 
   def connect_room(door, room)
-    @doors.store(door.direction, room) unless @doors.key?(door.direction)
+    return if @doors.key?(door.direction)
+    @doors.store(door.direction, [room, door.status])
   end
 
   def connections
@@ -16,5 +18,19 @@ class Space
 
   def door?(input)
     @doors.key?(input) ? true : false
+  end
+
+  def add_items(item)
+    @items << item
+  end
+
+  def items
+    @items.each { |item| puts "\nThere is a #{item.name}" }
+  end
+
+  def action?(action, item_name)
+    @items.each do |item|
+      item.name == item_name && item.actions.include?(action) ? true : false
+    end
   end
 end

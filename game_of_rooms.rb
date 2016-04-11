@@ -4,7 +4,7 @@ class GameOfRooms
     @player_input = nil
   end
 
-  def init_rooms
+  def setup
     bedroom = Space.new("bedroom")
     living_room = Space.new("living room")
     bathroom = Space.new("bathroom")
@@ -28,11 +28,17 @@ class GameOfRooms
     @current_space = bedroom
   end
 
+  def init_items
+    @current_space.add_items(Item.new("key", %w("get", "take", "pick")))
+  end
+
   def start
     setup
+    init_items
     Kernel.loop do
       print "You are in the #{@current_space.description}."
       @current_space.connections
+      @current_space.items
       print "\n>"
       user_input
       action
@@ -41,11 +47,14 @@ class GameOfRooms
 
   def user_input
     @player_input = gets.chomp.downcase
+    @player_input = @player_input.split(" ")
   end
 
   def action
-    if @current_space.door?(@player_input)
-      @current_space = @current_space.doors[@player_input]
+    if @current_space.door?(@player_input[0])
+      @current_space = @current_space.doors[@player_input][0]
+    elsif @current_space.action?(@player_input[0], @player_input[1])
+      puts "success"
     else
       puts "sorry, you can't do that here"
     end
