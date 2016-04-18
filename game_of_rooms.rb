@@ -2,30 +2,53 @@ class GameOfRooms
   def initialize
     @current_space = nil
     @player_input = nil
+    @rooms = {}
+    @exits = {}
   end
 
   def setup
-    bedroom = Space.new("bedroom")
+    room_builder
+    door_builder
+    room_connector
+    @current_space = @rooms["bedroom"]
+  end
+
+  def room_builder
+    bedroom     = Space.new("bedroom")
     living_room = Space.new("living room")
-    bathroom = Space.new("bathroom")
-    kitchen = Space.new("kitchen")
-    backyard = Space.new("backyard")
-    bedroom_east = Door.new("east", "unlocked")
-    living_west_door = Door.new("west", "unlocked")
-    living_south_door = Door.new("south", "unlocked")
-    living_east_door = Door.new("east", "locked")
-    living_north_door = Door.new("north", "locked")
-    bathroom_door = Door.new("north", "unlocked")
-    backyard_door = Door.new("south", "locked")
-    bedroom.connect_room(bedroom_east, living_room)
-    living_room.connect_room(living_west_door, bedroom)
-    living_room.connect_room(living_south_door, bathroom)
-    living_room.connect_room(living_east_door, kitchen)
-    living_room.connect_room(living_north_door, backyard)
-    bathroom.connect_room(bathroom_door, living_room)
-    kitchen.connect_room(living_west_door, living_room)
-    backyard.connect_room(backyard_door, living_room)
-    @current_space = bedroom
+    bathroom    = Space.new("bathroom")
+    kitchen     = Space.new("kitchen")
+    backyard    = Space.new("backyard")
+    @rooms = {
+      "bedroom"     => bedroom,
+      "living_room" => living_room,
+      "bathroom"    => bathroom,
+      "kitchen"     => kitchen,
+      "backyard"    => backyard
+    }
+  end
+
+  def door_builder
+    @exits = {
+      "bedroom_east"      => Door.new("east", "unlocked"),
+      "living_west_door"  => Door.new("west", "unlocked"),
+      "living_south_door" => Door.new("south", "unlocked"),
+      "living_east_door"  => Door.new("east", "locked"),
+      "living_north_door" => Door.new("north", "locked"),
+      "bathroom_door"     => Door.new("north", "unlocked"),
+      "backyard_door"     => Door.new("south", "locked")
+    }
+  end
+
+  def room_connector
+    @rooms["bedroom"].connect_room(@exits["bedroom_east"], @rooms["living_room"])
+    @rooms["living_room"].connect_room(@exits["living_west_door"], @rooms["bedroom"])
+    @rooms["living_room"].connect_room(@exits["living_south_door"], @rooms["bathroom"])
+    @rooms["living_room"].connect_room(@exits["living_east_door"], @rooms["kitchen"])
+    @rooms["living_room"].connect_room(@exits["living_north_door"], @rooms["backyard"])
+    @rooms["bathroom"].connect_room(@exits["bathroom_door"], @rooms["living_room"])
+    @rooms["kitchen"].connect_room(@exits["living_west_door"], @rooms["living_room"])
+    @rooms["backyard"].connect_room(@exits["backyard_door"], @rooms["living_room"])
   end
 
   def init_items
@@ -36,6 +59,7 @@ class GameOfRooms
     setup
     init_items
     Kernel.loop do
+      binding.pry
       print "You are in the #{@current_space.description}."
       @current_space.connections
       @current_space.items
@@ -52,7 +76,7 @@ class GameOfRooms
 
   def action
     if @current_space.door?(@player_input[0])
-      @current_space = @current_space.doors[@player_input][0]
+      @current_space = @current_space.doors[@player_input]#[0]
     elsif @current_space.action?(@player_input[0], @player_input[1])
       puts "success"
     else
